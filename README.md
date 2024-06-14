@@ -1,7 +1,8 @@
 בס"ד
 
 # BlogPlatform
-Design and implement blog platform REST API in Golang
+### Design and implement blog platform REST API in Golang
+
 [![Go](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml)
 
 # Problem Statement:
