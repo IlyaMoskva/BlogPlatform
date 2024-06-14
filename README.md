@@ -2,6 +2,7 @@
 
 # BlogPlatform
 Design and implement blog platform REST API in Golang
+[![Go](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml)
 
 # Problem Statement:
 You are tasked with building a simple RESTful API for a blog platform. The API should allow creating, updating, deleting, and retrieving blog posts. Each blog post should have a title, content, and an author.
