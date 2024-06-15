@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"blogplatform/validation"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"sync"
 )
 
@@ -15,10 +15,15 @@ type Post struct {
 }
 
 var (
-	posts  = make(map[int]Post)
+	Posts  = make(map[int]Post)
 	nextID = 1
 	mu     sync.Mutex
 )
+
+func extractAndValidateID(r *http.Request) (int, error) {
+	idStr := r.URL.Query().Get("id")
+	return validation.ValidateID(idStr)
+}
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	var post Post
@@ -30,7 +35,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	post.ID = nextID
 	nextID++
-	posts[post.ID] = post
+	Posts[post.ID] = post
 	mu.Unlock()
 
 	w.WriteHeader(http.StatusCreated)
@@ -38,14 +43,14 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPost(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || id < 1 {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+	id, err := extractAndValidateID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	mu.Lock()
-	post, exists := posts[id]
+	post, exists := Posts[id]
 	mu.Unlock()
 	if !exists {
 		http.Error(w, "Post not found", http.StatusNotFound)
@@ -56,9 +61,9 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || id < 1 {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+	id, err := extractAndValidateID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -69,7 +74,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mu.Lock()
-	post, exists := posts[id]
+	post, exists := Posts[id]
 	if !exists {
 		mu.Unlock()
 		http.Error(w, "Post not found", http.StatusNotFound)
@@ -79,40 +84,39 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	post.Title = updatedPost.Title
 	post.Content = updatedPost.Content
 	post.Author = updatedPost.Author
-	posts[id] = post
+	Posts[id] = post
 	mu.Unlock()
 
 	json.NewEncoder(w).Encode(post)
 }
 
 func DeletePost(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || id < 1 {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+	id, err := extractAndValidateID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	mu.Lock()
-	if _, exists := posts[id]; !exists {
+	if _, exists := Posts[id]; !exists {
 		mu.Unlock()
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
-	delete(posts, id)
+	delete(Posts, id)
 	mu.Unlock()
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func ListPosts(w http.ResponseWriter, r *http.Request) {
-
 	var result []Post
 
-	mu.Lock()	
-	for _, post := range posts {
+	mu.Lock()
+	for _, post := range Posts {
 		result = append(result, post)
 	}
 	mu.Unlock()
-	
+
 	json.NewEncoder(w).Encode(result)
 }
