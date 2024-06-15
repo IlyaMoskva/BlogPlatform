@@ -5,10 +5,10 @@
 
 [![Go](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml)
 
-# Problem Statement:
+## Problem Statement:
 You are tasked with building a simple RESTful API for a blog platform. The API should allow creating, updating, deleting, and retrieving blog posts. Each blog post should have a title, content, and an author.
 
-# Requirements:
+## Requirements:
 
 * Implement CRUD (Create, Read, Update, Delete) operations for blog posts.
 * Use a simple in-memory data store (e.g., a slice or a map) to store blog posts, using the attached JSON data sample.
@@ -16,7 +16,7 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 * Include error handling for common scenarios (e.g., not found, validation errors).
 * Write unit tests to ensure the reliability of your code.
 
-# Endpoint Examples:
+## Endpoint Examples:
 
 * GET /posts: Retrieve a list of all blog posts.
 * GET /posts/{id}: Retrieve details of a specific blog post.
@@ -24,7 +24,10 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 * PUT /posts/{id}: Update an existing blog post.
 * DELETE /posts/{id}: Delete a blog post.
 
-## Initial Preparation
+# Initial Preparation
+
+## Certificate Generation
+
 Solution uses self-signed certificate to work over https. Pair of keys is prepared and placed in the root folder.
 To generate them again run
 ```sh

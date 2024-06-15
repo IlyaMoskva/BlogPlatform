@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var version float64 = 0.4
+var version float64 = 0.5
 
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
