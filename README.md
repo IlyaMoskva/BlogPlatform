@@ -24,6 +24,9 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 * PUT /posts/{id}: Update an existing blog post.
 * DELETE /posts/{id}: Delete a blog post.
 
+## Swagger documentation
+Available here: https://localhost:8443/swagger/index.htm
+
 # Initial Preparation
 
 ## Certificate Generation
