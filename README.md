@@ -23,3 +23,13 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 * POST /posts: Create a new blog post.
 * PUT /posts/{id}: Update an existing blog post.
 * DELETE /posts/{id}: Delete a blog post.
+
+## Initial Preparation
+Solution uses self-signed certificate to work over https. Pair of keys is prepared and placed in the root folder.
+To generate them again run
+```sh
+go run cryptogen/cryptogen.go
+```
+Generated files will be used by main program.
+Use https://localhost:8443/ as a main API path.
+
