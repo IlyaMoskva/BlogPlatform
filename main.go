@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var version float64 = 0.3
+var version float64 = 0.4
 
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
@@ -27,6 +27,10 @@ func main() {
 		}
 	})
 
-	fmt.Println("Server started at :8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("Server started at https://localhost:8443")
+	// Serve HTTPS with TLS
+	err := http.ListenAndServeTLS(":8443", "server.crt", "server.key", nil)
+	if err != nil {
+		fmt.Printf("Failed to start server: %v\n", err)
+	}
 }

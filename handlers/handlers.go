@@ -105,13 +105,14 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListPosts(w http.ResponseWriter, r *http.Request) {
-	mu.Lock()
-	defer mu.Unlock()
 
 	var result []Post
+
+	mu.Lock()	
 	for _, post := range posts {
 		result = append(result, post)
 	}
-
+	mu.Unlock()
+	
 	json.NewEncoder(w).Encode(result)
 }
