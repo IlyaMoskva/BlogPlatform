@@ -1,7 +1,9 @@
 בס"ד
 
 # BlogPlatform
-Design and implement blog platform REST API in Golang
+### Design and implement blog platform REST API in Golang
+
+[![Go](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml/badge.svg?branch=master)](https://github.com/IlyaMoskva/BlogPlatform/actions/workflows/go.yml)
 
 # Problem Statement:
 You are tasked with building a simple RESTful API for a blog platform. The API should allow creating, updating, deleting, and retrieving blog posts. Each blog post should have a title, content, and an author.
@@ -30,3 +32,4 @@ go run cryptogen/cryptogen.go
 ```
 Generated files will be used by main program.
 Use https://localhost:8443/ as a main API path.
+
