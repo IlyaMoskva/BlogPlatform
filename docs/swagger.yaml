@@ -1,0 +1,143 @@
+definitions:
+  handlers.Post:
+    properties:
+      author:
+        type: string
+      content:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /post:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a post by ID
+      parameters:
+      - description: Post ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "404":
+          description: Post not found
+          schema:
+            type: string
+      summary: Delete a post by ID
+      tags:
+      - Post API
+    get:
+      consumes:
+      - application/json
+      description: Get a post by ID
+      parameters:
+      - description: Post ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Post'
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "404":
+          description: Post not found
+          schema:
+            type: string
+      summary: Get a post by ID
+      tags:
+      - Post API
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog post
+      parameters:
+      - description: Post content
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Post'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.Post'
+      summary: Create a new post
+      tags:
+      - Post API
+    put:
+      consumes:
+      - application/json
+      description: Update a post by ID
+      parameters:
+      - description: Post ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Post content
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Post'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Post'
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "404":
+          description: Post not found
+          schema:
+            type: string
+      summary: Update a post by ID
+      tags:
+      - Post API
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: List all blog posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Post'
+            type: array
+      summary: List all posts
+      tags:
+      - Post API
+swagger: "2.0"

@@ -1,9 +1,12 @@
 package main
 
 import (
+	_ "blogplatform/docs"
 	"blogplatform/handlers"
 	"fmt"
 	"net/http"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 var version float64 = 0.5
@@ -27,7 +30,11 @@ func main() {
 		}
 	})
 
+	// Swagger UI endpoint
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
 	fmt.Println("Server started at https://localhost:8443")
+
 	// Serve HTTPS with TLS
 	err := http.ListenAndServeTLS(":8443", "server.crt", "server.key", nil)
 	if err != nil {
