@@ -162,7 +162,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 // listPosts lists all posts with pagination
 // @Summary List all posts with pagination
 // @Description List all blog posts with pagination
-// @Tags Post API
+// @Tags Post Collection API
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number"
@@ -245,7 +245,7 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 // SearchPosts searches posts by title or author
 // @Summary Search posts by title, content, or author
 // @Description Search posts by title, content, or author
-// @Tags Post API
+// @Tags Post Collection API
 // @Accept json
 // @Produce json
 // @Param query query string true "Search query"

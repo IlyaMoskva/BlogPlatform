@@ -19,13 +19,13 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 ## Endpoint Examples:
 
 * GET /posts: Retrieve a list of all blog posts.
-* GET /posts/{id}: Retrieve details of a specific blog post.
-* POST /posts: Create a new blog post.
-* PUT /posts/{id}: Update an existing blog post.
-* DELETE /posts/{id}: Delete a blog post.
+* GET /post/{id}: Retrieve details of a specific blog post.
+* POST /post: Create a new blog post.
+* PUT /post/{id}: Update an existing blog post.
+* DELETE /post/{id}: Delete a blog post.
 
 ## Swagger documentation
-Available here: https://localhost:8443/swagger/index.htm
+Available here: https://localhost:8443/swagger/doc
 
 # Initial Preparation
 

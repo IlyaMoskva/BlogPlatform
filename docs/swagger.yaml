@@ -177,7 +177,7 @@ paths:
             type: array
       summary: List all posts with pagination
       tags:
-      - Post API
+      - Post Collection API
   /posts/search:
     get:
       consumes:
@@ -200,5 +200,5 @@ paths:
             type: array
       summary: Search posts by title, content, or author
       tags:
-      - Post API
+      - Post Collection API
 swagger: "2.0"

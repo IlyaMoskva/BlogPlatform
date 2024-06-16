@@ -235,7 +235,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post API"
+                    "Post Collection API"
                 ],
                 "summary": "List all posts with pagination",
                 "parameters": [
@@ -275,7 +275,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post API"
+                    "Post Collection API"
                 ],
                 "summary": "Search posts by title, content, or author",
                 "parameters": [

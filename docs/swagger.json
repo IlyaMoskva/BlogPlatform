@@ -224,7 +224,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Post API"
+                    "Post Collection API"
                 ],
                 "summary": "List all posts with pagination",
                 "parameters": [
@@ -264,7 +264,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Post API"
+                    "Post Collection API"
                 ],
                 "summary": "Search posts by title, content, or author",
                 "parameters": [
