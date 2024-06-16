@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	_ "blogplatform/docs"
 	"blogplatform/structs"
 	"blogplatform/validation"
 	"encoding/json"
@@ -37,7 +36,7 @@ func extractAndValidateID(r *http.Request) (int, error) {
 // @Tags Post API
 // @Accept json
 // @Produce json
-// @Param post body Post true "Post content"
+// @Param post body structs.Post true "Post content"
 // @Success 201 {object} structs.Post
 // @Router /post [post]
 func CreatePost(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +91,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id query int true "Post ID"
-// @Param post body Post true "Post content"
+// @Param post body structs.Post true "Post content"
 // @Success 200 {object} structs.Post
 // @Failure 400 {string} string "Invalid ID"
 // @Failure 404 {string} string "Post not found"
@@ -115,7 +114,6 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	post, exists := Store.Posts[id]
 	if !exists {
-		Store.Mutex.Unlock()
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -197,8 +195,10 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	var posts []structs.Post
-	err = json.NewDecoder(file).Decode(&posts)
+	var data struct {
+		Posts []structs.Post `json:"posts"`
+	}
+	err = json.NewDecoder(file).Decode(&data)
 	if err != nil {
 		http.Error(w, "Error decoding JSON file", http.StatusBadRequest)
 		return
@@ -207,7 +207,7 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 	Store.Mutex.Lock()
 	defer Store.Mutex.Unlock()
 
-	for _, post := range posts {
+	for _, post := range data.Posts {
 		post.ID = len(Store.Posts) + 1
 		Store.Posts[post.ID] = post
 		Store.PostsList = append(Store.PostsList, post)
