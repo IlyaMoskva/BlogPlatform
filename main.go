@@ -14,6 +14,7 @@ var version float64 = 0.5
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
 
+	// Post API
 	http.HandleFunc("/posts", handlers.ListPosts)
 	http.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -29,6 +30,8 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	// Admin API
+	http.HandleFunc("/admin/import", handlers.ImportPostsFromFile)
 
 	// Swagger UI endpoint
 	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)

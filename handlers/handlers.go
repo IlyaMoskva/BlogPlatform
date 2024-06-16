@@ -2,24 +2,23 @@ package handlers
 
 import (
 	_ "blogplatform/docs"
+	"blogplatform/structs"
 	"blogplatform/validation"
 	"encoding/json"
 	"net/http"
 	"sync"
 )
 
-type Post struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Author  string `json:"author"`
+type InMemoryStore struct {
+	Posts     map[int]structs.Post
+	PostsList []structs.Post
+	Mutex     sync.Mutex
 }
 
-var (
-	Posts  = make(map[int]Post)
-	nextID = 1
-	mu     sync.Mutex
-)
+var Store = InMemoryStore{
+	Posts:     make(map[int]structs.Post),
+	PostsList: []structs.Post{},
+}
 
 func extractAndValidateID(r *http.Request) (int, error) {
 	idStr := r.URL.Query().Get("id")
@@ -39,20 +38,19 @@ func extractAndValidateID(r *http.Request) (int, error) {
 // @Accept json
 // @Produce json
 // @Param post body Post true "Post content"
-// @Success 201 {object} Post
+// @Success 201 {object} structs.Post
 // @Router /post [post]
 func CreatePost(w http.ResponseWriter, r *http.Request) {
-	var post Post
+	var post structs.Post
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	mu.Lock()
-	post.ID = nextID
-	nextID++
-	Posts[post.ID] = post
-	mu.Unlock()
+	Store.Mutex.Lock()
+	post.ID = len(Store.PostsList) + 1
+	Store.Posts[post.ID] = post
+	Store.Mutex.Unlock()
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(post)
@@ -65,7 +63,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id query int true "Post ID"
-// @Success 200 {object} Post
+// @Success 200 {object} structs.Post
 // @Failure 400 {string} string "Invalid ID"
 // @Failure 404 {string} string "Post not found"
 // @Router /post [get]
@@ -76,9 +74,9 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	post, exists := Posts[id]
-	mu.Unlock()
+	Store.Mutex.Lock()
+	post, exists := Store.Posts[id]
+	Store.Mutex.Unlock()
 	if !exists {
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
@@ -95,7 +93,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id query int true "Post ID"
 // @Param post body Post true "Post content"
-// @Success 200 {object} Post
+// @Success 200 {object} structs.Post
 // @Failure 400 {string} string "Invalid ID"
 // @Failure 404 {string} string "Post not found"
 // @Router /post [put]
@@ -106,16 +104,18 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updatedPost Post
+	var updatedPost structs.Post
 	if err := json.NewDecoder(r.Body).Decode(&updatedPost); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	mu.Lock()
-	post, exists := Posts[id]
+	Store.Mutex.Lock()
+	defer Store.Mutex.Unlock()
+
+	post, exists := Store.Posts[id]
 	if !exists {
-		mu.Unlock()
+		Store.Mutex.Unlock()
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -123,8 +123,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	post.Title = updatedPost.Title
 	post.Content = updatedPost.Content
 	post.Author = updatedPost.Author
-	Posts[id] = post
-	mu.Unlock()
+	Store.Posts[id] = post
 
 	json.NewEncoder(w).Encode(post)
 }
@@ -147,14 +146,14 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mu.Lock()
-	if _, exists := Posts[id]; !exists {
-		mu.Unlock()
+	Store.Mutex.Lock()
+	if _, exists := Store.Posts[id]; !exists {
+		Store.Mutex.Unlock()
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
-	delete(Posts, id)
-	mu.Unlock()
+	delete(Store.Posts, id)
+	Store.Mutex.Unlock()
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -165,16 +164,55 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 // @Tags Post API
 // @Accept json
 // @Produce json
-// @Success 200 {array} Post
+// @Success 200 {array} structs.Post
 // @Router /posts [get]
 func ListPosts(w http.ResponseWriter, r *http.Request) {
-	var result []Post
+	var result []structs.Post
 
-	mu.Lock()
-	for _, post := range Posts {
+	Store.Mutex.Lock()
+	for _, post := range Store.Posts {
 		result = append(result, post)
 	}
-	mu.Unlock()
+	Store.Mutex.Unlock()
 
 	json.NewEncoder(w).Encode(result)
+}
+
+// ImportPostsFromFile godoc
+// @Summary Import posts from a JSON file
+// @Description Upload and import posts from a JSON file
+// @Tags Admin API
+// @Accept multipart/form-data
+// @Produce plain
+// @Param file formData file true "JSON file with posts"
+// @Success 200 {string} string "Posts imported successfully"
+// @Failure 400 {string} string "Error retrieving the file"
+// @Failure 500 {string} string "Error decoding JSON file"
+// @Router /admin/import [post]
+func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	var posts []structs.Post
+	err = json.NewDecoder(file).Decode(&posts)
+	if err != nil {
+		http.Error(w, "Error decoding JSON file", http.StatusBadRequest)
+		return
+	}
+
+	Store.Mutex.Lock()
+	defer Store.Mutex.Unlock()
+
+	for _, post := range posts {
+		post.ID = len(Store.Posts) + 1
+		Store.Posts[post.ID] = post
+		Store.PostsList = append(Store.PostsList, post)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Posts imported successfully"))
 }
