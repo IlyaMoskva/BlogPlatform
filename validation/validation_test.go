@@ -78,6 +78,11 @@ func TestValidateQuery(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:        "Valid query with leading and trailing spaces",
+			query:       "  test  ",
+			expectError: false,
+		},
+		{
 			name:         "Empty query",
 			query:        "",
 			expectError:  true,
@@ -93,9 +98,16 @@ func TestValidateQuery(t *testing.T) {
 		},
 		{
 			name:         "Invalid characters",
-			query:        string([]byte{0xff, 0xfe, 0xfd}),
+			query:        "!@#$%^&*()",
 			expectError:  true,
 			expectedMsg:  "query parameter contains invalid characters",
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "Non-UTF-8 characters",
+			query:        string([]byte{0xff, 0xfe, 0xfd}),
+			expectError:  true,
+			expectedMsg:  "query parameter is not valid UTF-8",
 			expectedCode: http.StatusBadRequest,
 		},
 	}
@@ -116,7 +128,7 @@ func TestValidateQuery(t *testing.T) {
 						t.Errorf("ValidateQuery() error code = %v, expectedCode %v", httpErr.Code, tt.expectedCode)
 					}
 				} else {
-					t.Errorf("ValidateQuery() error is not of type httpError")
+					t.Errorf("ValidateQuery() error is not of type HttpError")
 				}
 			}
 		})
