@@ -31,11 +31,27 @@ Available here: https://localhost:8443/swagger/index.htm
 
 ## Certificate Generation
 
-Solution uses self-signed certificate to work over https. Pair of keys is prepared and placed in the root folder.
+Solution uses self-signed certificate to work over https. Pair of keys is prepared already and placed in the root folder.
 To generate them again run
 ```sh
-go run cryptogen/cryptogen.go
+go run certgen/certgen.go
 ```
 Generated files will be used by main program.
 Use https://localhost:8443/ as a main API path.
 
+## Run the Server
+```sh
+go buld main.go
+go run main.go
+```
+
+## Import Initial Data (optional)
+There is an Admin API to load data from json file with the given format.
+Use Postman collection test "POST import from file"
+```
+curl --location 'https://localhost:8443/admin/import' \
+--form 'file=@"/path_to_file/blog_data.json"'
+```
+Original file is placed in "files" folder.
+
+Import can be done in any moment later, post Ids will be generated automatically. There is no duplication prevention.
