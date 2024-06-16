@@ -25,7 +25,7 @@ You are tasked with building a simple RESTful API for a blog platform. The API s
 * DELETE /post/{id}: Delete a blog post.
 
 ## Swagger documentation
-Available here: https://localhost:8443/swagger/doc
+Available here: https://localhost:8443/swagger/doc/
 
 # Initial Preparation
 
