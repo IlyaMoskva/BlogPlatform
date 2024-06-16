@@ -227,7 +227,7 @@ const docTemplate = `{
         },
         "/posts": {
             "get": {
-                "description": "List all blog posts",
+                "description": "List all blog posts with pagination",
                 "consumes": [
                     "application/json"
                 ],
@@ -237,7 +237,56 @@ const docTemplate = `{
                 "tags": [
                     "Post API"
                 ],
-                "summary": "List all posts",
+                "summary": "List all posts with pagination",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/structs.Post"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/search": {
+            "get": {
+                "description": "Search posts by title, content, or author",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post API"
+                ],
+                "summary": "Search posts by title, content, or author",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

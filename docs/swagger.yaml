@@ -156,7 +156,16 @@ paths:
     get:
       consumes:
       - application/json
-      description: List all blog posts
+      description: List all blog posts with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
@@ -166,7 +175,30 @@ paths:
             items:
               $ref: '#/definitions/structs.Post'
             type: array
-      summary: List all posts
+      summary: List all posts with pagination
+      tags:
+      - Post API
+  /posts/search:
+    get:
+      consumes:
+      - application/json
+      description: Search posts by title, content, or author
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/structs.Post'
+            type: array
+      summary: Search posts by title, content, or author
       tags:
       - Post API
 swagger: "2.0"

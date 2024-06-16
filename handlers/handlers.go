@@ -5,6 +5,8 @@ import (
 	"blogplatform/validation"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -49,6 +51,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	Store.Mutex.Lock()
 	post.ID = len(Store.PostsList) + 1
 	Store.Posts[post.ID] = post
+	Store.PostsList = append(Store.PostsList, post)
 	Store.Mutex.Unlock()
 
 	w.WriteHeader(http.StatusCreated)
@@ -156,23 +159,45 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// listPosts lists all posts
-// @Summary List all posts
-// @Description List all blog posts
+// listPosts lists all posts with pagination
+// @Summary List all posts with pagination
+// @Description List all blog posts with pagination
 // @Tags Post API
 // @Accept json
 // @Produce json
+// @Param page query int false "Page number"
+// @Param size query int false "Page size"
 // @Success 200 {array} structs.Post
 // @Router /posts [get]
 func ListPosts(w http.ResponseWriter, r *http.Request) {
-	var result []structs.Post
+	pageStr := r.URL.Query().Get("page")
+	sizeStr := r.URL.Query().Get("size")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	size, err := strconv.Atoi(sizeStr)
+	if err != nil || size < 1 {
+		size = 10
+	}
 
 	Store.Mutex.Lock()
-	for _, post := range Store.Posts {
-		result = append(result, post)
-	}
-	Store.Mutex.Unlock()
+	defer Store.Mutex.Unlock()
 
+	var result []structs.Post
+	start := (page - 1) * size
+	end := start + size
+
+	if start >= len(Store.PostsList) {
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if end > len(Store.PostsList) {
+		end = len(Store.PostsList)
+	}
+
+	result = Store.PostsList[start:end]
 	json.NewEncoder(w).Encode(result)
 }
 
@@ -215,4 +240,33 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Posts imported successfully"))
+}
+
+// searchPosts searches posts by title or author
+// @Summary Search posts by title, content, or author
+// @Description Search posts by title, content, or author
+// @Tags Post API
+// @Accept json
+// @Produce json
+// @Param query query string true "Search query"
+// @Success 200 {array} structs.Post
+// @Router /posts/search [get]
+func SearchPosts(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+
+	if err := validation.ValidateQuery(query); err != nil {
+		http.Error(w, err.Error(), err.(validation.HttpError).Code)
+		return
+	}
+
+	Store.Mutex.Lock()
+	defer Store.Mutex.Unlock()
+
+	var result []structs.Post
+	for _, post := range Store.Posts {
+		if strings.Contains(post.Title, query) || strings.Contains(post.Content, query) || strings.Contains(post.Author, query) {
+			result = append(result, post)
+		}
+	}
+	json.NewEncoder(w).Encode(result)
 }
