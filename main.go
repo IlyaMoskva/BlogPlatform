@@ -9,7 +9,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-var version float64 = 0.5
+var version float64 = 0.6
 
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
