@@ -14,9 +14,7 @@ import (
 	"testing"
 )
 
-func TestCreatePost(t *testing.T) {
-	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
-
+func createDummyPost(payload string, t *testing.T) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(http.MethodPost, "/post", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
 		t.Fatal(err)
@@ -30,6 +28,19 @@ func TestCreatePost(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusCreated)
 	}
+	return rr
+}
+
+func resetPosts() {
+	Store.Mutex.Lock()
+	defer Store.Mutex.Unlock()
+	Store.Posts = make(map[int]structs.Post)
+	Store.PostsList = []structs.Post{}
+}
+
+func TestCreatePost(t *testing.T) {
+	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
+	rr := createDummyPost(payload, t)
 
 	var post structs.Post
 	if err := json.NewDecoder(rr.Body).Decode(&post); err != nil {
@@ -43,14 +54,8 @@ func TestCreatePost(t *testing.T) {
 
 func TestGetPost(t *testing.T) {
 	// Simulate creating a post first
-	createPayload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
-	createReq, err := http.NewRequest(http.MethodPost, "/post", bytes.NewBuffer([]byte(createPayload)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	createRR := httptest.NewRecorder()
-	createHandler := http.HandlerFunc(CreatePost)
-	createHandler.ServeHTTP(createRR, createReq)
+	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
+	createDummyPost(payload, t)
 
 	// Now test retrieving the post
 	getReq, err := http.NewRequest(http.MethodGet, "/post?id=1", nil)
@@ -85,15 +90,10 @@ func TestGetPost(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
+	resetPosts()
 	// Simulate creating a post first
-	createPayload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
-	createReq, err := http.NewRequest(http.MethodPost, "/post", bytes.NewBuffer([]byte(createPayload)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	createRR := httptest.NewRecorder()
-	createHandler := http.HandlerFunc(CreatePost)
-	createHandler.ServeHTTP(createRR, createReq)
+	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
+	createDummyPost(payload, t)
 
 	// Now test updating the post
 	updatePayload := `{"title":"Updated Post","content":"This is an updated test post","author":"Tester"}`
@@ -129,15 +129,10 @@ func TestUpdatePost(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
+	resetPosts()
 	// Simulate creating a post first
-	createPayload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
-	createReq, err := http.NewRequest(http.MethodPost, "/post", bytes.NewBuffer([]byte(createPayload)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	createRR := httptest.NewRecorder()
-	createHandler := http.HandlerFunc(CreatePost)
-	createHandler.ServeHTTP(createRR, createReq)
+	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
+	createDummyPost(payload, t)
 
 	// Now test deleting the post
 	deleteReq, err := http.NewRequest(http.MethodDelete, "/post?id=1", nil)
@@ -155,7 +150,43 @@ func TestDeletePost(t *testing.T) {
 	}
 }
 
+func TestListPostsWithPagination(t *testing.T) {
+	resetPosts()
+	// Simulate creating two posts
+	payload1 := `{"id":1,"title":"Test Post1","content":"This is a test post","author":"Tester1"}`
+	payload2 := `{"id":2,"title":"Test Post2","content":"This is a test post","author":"Tester2"}`
+	createDummyPost(payload1, t)
+	createDummyPost(payload2, t)
+
+	if len(Store.Posts) != 2 {
+		t.Fatalf("expected 2 posts in the store, got %d", len(Store.Posts))
+	}
+
+	req, err := http.NewRequest("GET", "/posts?page=1&size=2", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(ListPosts)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	var posts []structs.Post
+	if err := json.NewDecoder(rr.Body).Decode(&posts); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(posts) != 2 {
+		t.Errorf("expected 2 posts, got %d", len(posts))
+	}
+}
+
 func TestImportPostsFromFile(t *testing.T) {
+	resetPosts()
 	// Prepare the file
 	path := filepath.Join("../testfiles", "test_posts.json")
 	file, err := os.Open(path)
