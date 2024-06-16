@@ -17,15 +17,7 @@ func main() {
 	// Posts API (collection)
 	http.HandleFunc("/posts", handlers.ListPosts)
 	http.HandleFunc("/posts/search", handlers.SearchPosts)
-	/*	{
-			query := strings.TrimSpace(r.URL.Query().Get("q"))
-			if query == "" {
-				handlers.ListPosts(w, r)
-			} else {
-				handlers.SearchPosts(w, r)
-			}
-		})
-	*/
+
 	// Post API (single)
 	http.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
