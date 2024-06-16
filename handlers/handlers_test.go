@@ -248,3 +248,56 @@ func TestImportPostsFromFile(t *testing.T) {
 		t.Errorf("Post 2 not imported correctly: %+v", post2)
 	}
 }
+
+func TestSearchPosts(t *testing.T) {
+	resetPosts()
+	// Simulate creating multiple posts
+	payload1 := `{"title":"First Post","content":"This is the first test post","author":"Author1"}`
+	payload2 := `{"title":"Second Post","content":"This is the second test post","author":"Author2"}`
+	payload3 := `{"title":"Another Post","content":"Another post for testing","author":"Author3"}`
+	createDummyPost(payload1, t)
+	createDummyPost(payload2, t)
+	createDummyPost(payload3, t)
+
+	if len(Store.Posts) != 3 {
+		t.Fatalf("expected 3 posts in the store, got %d", len(Store.Posts))
+	}
+
+	// Define test cases
+	tests := []struct {
+		query    string
+		expected int
+	}{
+		{"First", 1},
+		{"Post", 3},
+		{"test", 3},
+		{"Author1", 1},
+		{"nonexistent", 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.query, func(t *testing.T) {
+			req, err := http.NewRequest("GET", "/search?q="+tt.query, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(SearchPosts)
+			handler.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != http.StatusOK {
+				t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+			}
+
+			var posts []structs.Post
+			if err := json.NewDecoder(rr.Body).Decode(&posts); err != nil {
+				t.Fatal(err)
+			}
+
+			if len(posts) != tt.expected {
+				t.Errorf("expected %d posts, got %d for query %v", tt.expected, len(posts), tt.query)
+			}
+		})
+	}
+}

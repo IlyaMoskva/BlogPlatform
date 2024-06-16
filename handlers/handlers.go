@@ -252,7 +252,7 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} structs.Post
 // @Router /posts/search [get]
 func SearchPosts(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("query")
+	query := r.URL.Query().Get("q")
 	if query == "" {
 		http.Error(w, "Query is required", http.StatusBadRequest)
 		return
@@ -263,7 +263,7 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 
 	var result []structs.Post
 	for _, post := range Store.Posts {
-		if strings.Contains(post.Title, query) || strings.Contains(post.Author, query) {
+		if strings.Contains(post.Title, query) || strings.Contains(post.Content, query) || strings.Contains(post.Author, query) {
 			result = append(result, post)
 		}
 	}
