@@ -243,8 +243,8 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 }
 
 // searchPosts searches posts by title or author
-// @Summary Search posts by title or author
-// @Description Search posts by title or author
+// @Summary Search posts by title, content, or author
+// @Description Search posts by title, content, or author
 // @Tags Post API
 // @Accept json
 // @Produce json

@@ -267,7 +267,7 @@ const docTemplate = `{
         },
         "/posts/search": {
             "get": {
-                "description": "Search posts by title or author",
+                "description": "Search posts by title, content, or author",
                 "consumes": [
                     "application/json"
                 ],
@@ -277,7 +277,7 @@ const docTemplate = `{
                 "tags": [
                     "Post API"
                 ],
-                "summary": "Search posts by title or author",
+                "summary": "Search posts by title, content, or author",
                 "parameters": [
                     {
                         "type": "string",

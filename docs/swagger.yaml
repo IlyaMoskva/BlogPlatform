@@ -182,7 +182,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search posts by title or author
+      description: Search posts by title, content, or author
       parameters:
       - description: Search query
         in: query
@@ -198,7 +198,7 @@ paths:
             items:
               $ref: '#/definitions/structs.Post'
             type: array
-      summary: Search posts by title or author
+      summary: Search posts by title, content, or author
       tags:
       - Post API
 swagger: "2.0"
