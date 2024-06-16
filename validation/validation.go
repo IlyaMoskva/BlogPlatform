@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 	"unicode/utf8"
 )
 
@@ -30,8 +29,6 @@ func ValidateID(idStr string) (int, error) {
 
 // ValidateQuery checks the validity of the query parameter
 func ValidateQuery(query string) error {
-	query = strings.TrimSpace(query)
-
 	if query == "" {
 		return HttpError{Message: "query parameter is required", Code: http.StatusBadRequest}
 	}

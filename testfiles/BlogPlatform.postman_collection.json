@@ -183,6 +183,33 @@
 				"description": "Generated from cURL: curl -X POST -F \"file=@path_to_your_file/posts.json\" \"http://localhost:8080/admin/import\"\r\n"
 			},
 			"response": []
+		},
+		{
+			"name": "GET Search",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8443/posts/search?q=test",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"posts",
+						"search"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "test"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -X GET 'http://localhost:8080/posts/search?q=test'\r\n"
+			},
+			"response": []
 		}
 	]
 }

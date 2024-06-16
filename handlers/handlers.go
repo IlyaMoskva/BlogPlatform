@@ -242,7 +242,7 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Posts imported successfully"))
 }
 
-// searchPosts searches posts by title or author
+// SearchPosts searches posts by title or author
 // @Summary Search posts by title, content, or author
 // @Description Search posts by title, content, or author
 // @Tags Post API
@@ -252,7 +252,7 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} structs.Post
 // @Router /posts/search [get]
 func SearchPosts(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("q")
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
 
 	if err := validation.ValidateQuery(query); err != nil {
 		http.Error(w, err.Error(), err.(validation.HttpError).Code)

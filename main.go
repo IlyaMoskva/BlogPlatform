@@ -14,8 +14,19 @@ var version float64 = 0.6
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
 
-	// Post API
+	// Posts API (collection)
 	http.HandleFunc("/posts", handlers.ListPosts)
+	http.HandleFunc("/posts/search", handlers.SearchPosts)
+	/*	{
+			query := strings.TrimSpace(r.URL.Query().Get("q"))
+			if query == "" {
+				handlers.ListPosts(w, r)
+			} else {
+				handlers.SearchPosts(w, r)
+			}
+		})
+	*/
+	// Post API (single)
 	http.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -30,6 +41,7 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+
 	// Admin API
 	http.HandleFunc("/admin/import", handlers.ImportPostsFromFile)
 
