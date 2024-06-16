@@ -253,8 +253,9 @@ func ImportPostsFromFile(w http.ResponseWriter, r *http.Request) {
 // @Router /posts/search [get]
 func SearchPosts(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
-	if query == "" {
-		http.Error(w, "Query is required", http.StatusBadRequest)
+
+	if err := validation.ValidateQuery(query); err != nil {
+		http.Error(w, err.Error(), err.(validation.HttpError).Code)
 		return
 	}
 
