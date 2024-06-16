@@ -2,6 +2,7 @@ package main
 
 import (
 	"blogplatform/handlers"
+	"blogplatform/structs"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -26,7 +27,7 @@ func TestCreatePost(t *testing.T) {
 			status, http.StatusCreated)
 	}
 
-	var post handlers.Post
+	var post structs.Post
 	if err := json.NewDecoder(rr.Body).Decode(&post); err != nil {
 		t.Fatal(err)
 	}
@@ -62,12 +63,12 @@ func TestGetPost(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	var post handlers.Post
+	var post structs.Post
 	if err := json.NewDecoder(getRR.Body).Decode(&post); err != nil {
 		t.Fatal(err)
 	}
 
-	expected := handlers.Post{
+	expected := structs.Post{
 		ID:      1,
 		Title:   "Test Post",
 		Content: "This is a test post",
@@ -106,12 +107,12 @@ func TestUpdatePost(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	var updatedPost handlers.Post
+	var updatedPost structs.Post
 	if err := json.NewDecoder(updateRR.Body).Decode(&updatedPost); err != nil {
 		t.Fatal(err)
 	}
 
-	expected := handlers.Post{
+	expected := structs.Post{
 		ID:      1,
 		Title:   "Updated Post",
 		Content: "This is an updated test post",

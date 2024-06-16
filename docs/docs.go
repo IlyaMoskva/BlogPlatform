@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/import": {
+            "post": {
+                "description": "Upload and import posts from a JSON file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Admin API"
+                ],
+                "summary": "Import posts from a JSON file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "JSON file with posts",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Posts imported successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Error retrieving the file",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error decoding JSON file",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/post": {
             "get": {
                 "description": "Get a post by ID",
@@ -41,7 +85,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Post"
+                            "$ref": "#/definitions/structs.Post"
                         }
                     },
                     "400": {
@@ -84,7 +128,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.Post"
+                            "$ref": "#/definitions/structs.Post"
                         }
                     }
                 ],
@@ -92,7 +136,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Post"
+                            "$ref": "#/definitions/structs.Post"
                         }
                     },
                     "400": {
@@ -128,7 +172,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.Post"
+                            "$ref": "#/definitions/structs.Post"
                         }
                     }
                 ],
@@ -136,7 +180,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Post"
+                            "$ref": "#/definitions/structs.Post"
                         }
                     }
                 }
@@ -200,7 +244,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.Post"
+                                "$ref": "#/definitions/structs.Post"
                             }
                         }
                     }
@@ -209,7 +253,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handlers.Post": {
+        "structs.Post": {
             "type": "object",
             "properties": {
                 "author": {

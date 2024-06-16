@@ -1,5 +1,5 @@
 definitions:
-  handlers.Post:
+  structs.Post:
     properties:
       author:
         type: string
@@ -13,6 +13,35 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload and import posts from a JSON file
+      parameters:
+      - description: JSON file with posts
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Posts imported successfully
+          schema:
+            type: string
+        "400":
+          description: Error retrieving the file
+          schema:
+            type: string
+        "500":
+          description: Error decoding JSON file
+          schema:
+            type: string
+      summary: Import posts from a JSON file
+      tags:
+      - Admin API
   /post:
     delete:
       consumes:
@@ -56,7 +85,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Post'
+            $ref: '#/definitions/structs.Post'
         "400":
           description: Invalid ID
           schema:
@@ -78,14 +107,14 @@ paths:
         name: post
         required: true
         schema:
-          $ref: '#/definitions/handlers.Post'
+          $ref: '#/definitions/structs.Post'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.Post'
+            $ref: '#/definitions/structs.Post'
       summary: Create a new post
       tags:
       - Post API
@@ -104,14 +133,14 @@ paths:
         name: post
         required: true
         schema:
-          $ref: '#/definitions/handlers.Post'
+          $ref: '#/definitions/structs.Post'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Post'
+            $ref: '#/definitions/structs.Post'
         "400":
           description: Invalid ID
           schema:
@@ -135,7 +164,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.Post'
+              $ref: '#/definitions/structs.Post'
             type: array
       summary: List all posts
       tags:

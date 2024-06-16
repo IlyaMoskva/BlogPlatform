@@ -152,6 +152,37 @@
 				"description": "Generated from cURL: curl -X GET http://localhost:8080/posts\r\n"
 			},
 			"response": []
+		},
+		{
+			"name": "POST import from file",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "path_to_your_file/posts.json"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/admin/import",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"admin",
+						"import"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST -F \"file=@path_to_your_file/posts.json\" \"http://localhost:8080/admin/import\"\r\n"
+			},
+			"response": []
 		}
 	]
 }
