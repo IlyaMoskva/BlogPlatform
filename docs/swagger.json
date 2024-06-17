@@ -288,9 +288,60 @@
                     }
                 }
             }
+        },
+        "/reports": {
+            "get": {
+                "description": "Retrieve various report statistics such as number of views for posts, number of search appearances, top authors, and top posts.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports API"
+                ],
+                "summary": "Get report statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/structs.ReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/structs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/structs.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "structs.Author": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
+        "structs.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "structs.Post": {
             "type": "object",
             "properties": {
@@ -303,8 +354,37 @@
                 "id": {
                     "type": "integer"
                 },
+                "search_appearances": {
+                    "type": "integer"
+                },
                 "title": {
                     "type": "string"
+                },
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
+        "structs.ReportResponse": {
+            "type": "object",
+            "properties": {
+                "search_appearances": {
+                    "type": "integer"
+                },
+                "top_authors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/structs.Author"
+                    }
+                },
+                "top_posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/structs.Post"
+                    }
+                },
+                "total_views": {
+                    "type": "integer"
                 }
             }
         }
