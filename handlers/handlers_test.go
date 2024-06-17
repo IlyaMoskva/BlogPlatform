@@ -38,6 +38,15 @@ func resetPosts() {
 	Store.PostsList = []structs.Post{}
 }
 
+func resetStats() {
+	structs.GlobalStats = structs.Stats{
+		PostViews:         make(map[int]int),
+		SearchAppearances: make(map[int]int),
+		AuthorViews:       make(map[string]int),
+		TotalSearchCount:  0,
+	}
+}
+
 func TestCreatePost(t *testing.T) {
 	payload := `{"title":"Test Post","content":"This is a test post","author":"Tester"}`
 	rr := createDummyPost(payload, t)
@@ -306,62 +315,106 @@ func TestSearchPosts(t *testing.T) {
 
 func TestGetReports(t *testing.T) {
 	resetPosts()
+	resetStats()
 
-	// Simulate creating posts and updating metrics
-	payload1 := `{"title":"Test Post1","content":"This is a test post","author":"Tester1"}`
-	payload2 := `{"title":"Test Post2","content":"This is a test post","author":"Tester2"}`
+	// Simulate creating posts
+	payload1 := `{"title":"Test Post 1","content":"This is the first test post","author":"Tester1"}`
+	payload2 := `{"title":"Test Post 2","content":"This is the second test post","author":"Tester2"}`
 	createDummyPost(payload1, t)
 	createDummyPost(payload2, t)
 
-	// Simulate some views and search appearances
-	Store.Mutex.Lock()
-	post1 := Store.Posts[1]
-	post1.Views = 10
-	post1.SearchAppearances = 5
-	Store.Posts[1] = post1
+	// Simulate viewing posts
+	getReq1, err := http.NewRequest(http.MethodGet, "/post?id=1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	getRR1 := httptest.NewRecorder()
+	getHandler := http.HandlerFunc(GetPost)
+	getHandler.ServeHTTP(getRR1, getReq1)
 
-	post2 := Store.Posts[2]
-	post2.Views = 15
-	post2.SearchAppearances = 8
-	Store.Posts[2] = post2
-	Store.Mutex.Unlock()
+	getReq2, err := http.NewRequest(http.MethodGet, "/post?id=2", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	getRR2 := httptest.NewRecorder()
+	getHandler.ServeHTTP(getRR2, getReq2)
 
-	req, err := http.NewRequest("GET", "/reports", nil)
+	// Simulate searching for posts
+	searchReq, err := http.NewRequest(http.MethodGet, "/posts?q=Test", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	searchRR := httptest.NewRecorder()
+	searchHandler := http.HandlerFunc(SearchPosts)
+	searchHandler.ServeHTTP(searchRR, searchReq)
+
+	// Now test getting the reports
+	reportsReq, err := http.NewRequest(http.MethodGet, "/reports", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(GetReports)
-	handler.ServeHTTP(rr, req)
+	reportsRR := httptest.NewRecorder()
+	reportsHandler := http.HandlerFunc(GetReports)
+	reportsHandler.ServeHTTP(reportsRR, reportsReq)
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	if status := reportsRR.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
 	}
 
-	var report struct {
-		TotalViews             int `json:"total_views"`
-		TotalSearchAppearances int `json:"total_search_appearances"`
-		TopAuthors             []struct {
-			Author string `json:"author"`
-			Views  int    `json:"views"`
-		} `json:"top_authors"`
-		TopPosts []structs.Post `json:"top_posts"`
-	}
-
-	if err := json.NewDecoder(rr.Body).Decode(&report); err != nil {
+	var reports structs.ReportResponse
+	if err := json.NewDecoder(reportsRR.Body).Decode(&reports); err != nil {
 		t.Fatal(err)
 	}
 
-	if report.TotalViews != 25 || report.TotalSearchAppearances != 13 {
-		t.Errorf("unexpected report totals: got %+v", report)
+	expectedTotalViews := 2
+	if reports.TotalViews != expectedTotalViews {
+		t.Errorf("handler returned unexpected total views: got %v want %v", reports.TotalViews, expectedTotalViews)
 	}
 
-	if len(report.TopAuthors) != 2 || report.TopAuthors[0].Author != "Tester2" || report.TopAuthors[0].Views != 15 {
-		t.Errorf("unexpected top authors: got %+v", report.TopAuthors)
+	expectedSearchAppearances := 1
+	if reports.SearchAppearances != expectedSearchAppearances {
+		t.Errorf("handler returned unexpected search appearances: got %v want %v", reports.SearchAppearances, expectedSearchAppearances)
 	}
 
-	if len(report.TopPosts) != 2 || report.TopPosts[0].ID != 2 || report.TopPosts[0].Views != 15 {
-		t.Errorf("unexpected top posts: got %+v", report.TopPosts)
+	expectedTopAuthors := []structs.Author{
+		{Name: "Tester1", Views: 1},
+		{Name: "Tester2", Views: 1},
 	}
+	if !compareAuthors(reports.TopAuthors, expectedTopAuthors) {
+		t.Errorf("handler returned unexpected top authors: got %v want %v", reports.TopAuthors, expectedTopAuthors)
+	}
+
+	expectedTopPosts := []structs.Post{
+		{ID: 1, Title: "Test Post 1", Content: "This is the first test post", Author: "Tester1", Views: 1},
+		{ID: 2, Title: "Test Post 2", Content: "This is the second test post", Author: "Tester2", Views: 1},
+	}
+	if !comparePosts(reports.TopPosts, expectedTopPosts) {
+		t.Errorf("handler returned unexpected top posts: got %v want %v", reports.TopPosts, expectedTopPosts)
+	}
+}
+
+func compareAuthors(a, b []structs.Author) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].Name != b[i].Name || a[i].Views != b[i].Views {
+			return false
+		}
+	}
+	return true
+}
+
+func comparePosts(a, b []structs.Post) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].ID != b[i].ID || a[i].Title != b[i].Title || a[i].Content != b[i].Content || a[i].Author != b[i].Author || a[i].Views != b[i].Views {
+			return false
+		}
+	}
+	return true
 }

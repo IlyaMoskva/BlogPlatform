@@ -88,6 +88,10 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	post.Views++
 	Store.Posts[id] = post
 
+	// Increment Global statistics
+	structs.GlobalStats.PostViews[id]++
+	structs.GlobalStats.AuthorViews[post.Author]++
+
 	json.NewEncoder(w).Encode(post)
 }
 
@@ -271,10 +275,12 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(post.Title, query) || strings.Contains(post.Content, query) || strings.Contains(post.Author, query) {
 			post.SearchAppearances++
 			Store.Posts[post.ID] = post
-
 			result = append(result, post)
 		}
 	}
+	// Update global statistics
+	structs.GlobalStats.TotalSearchCount++
+
 	json.NewEncoder(w).Encode(result)
 }
 
@@ -288,64 +294,62 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 // @Failure      500  {object}  ErrorResponse
 // @Router       /reports [get]
 func GetReports(w http.ResponseWriter, r *http.Request) {
-	Store.Mutex.Lock()
-	defer Store.Mutex.Unlock()
-
-	type AuthorStats struct {
-		Author string `json:"author"`
-		Views  int    `json:"views"`
-	}
-
-	var totalViews int
-	var totalSearchAppearances int
-	authorViews := make(map[string]int)
-	var topPosts []structs.Post
-
-	for _, post := range Store.Posts {
-		totalViews += post.Views
-		totalSearchAppearances += post.SearchAppearances
-		authorViews[post.Author] += post.Views
-		topPosts = append(topPosts, post)
-	}
-
-	// Sort top posts by views
-	sort.Slice(topPosts, func(i, j int) bool {
-		return topPosts[i].Views > topPosts[j].Views
-	})
-
-	// Get top 5 posts
-	if len(topPosts) > 5 {
-		topPosts = topPosts[:5]
-	}
-
-	// Convert author views map to slice
-	var topAuthors []AuthorStats
-	for author, views := range authorViews {
-		topAuthors = append(topAuthors, AuthorStats{Author: author, Views: views})
-	}
-
-	// Sort top authors by views
-	sort.Slice(topAuthors, func(i, j int) bool {
-		return topAuthors[i].Views > topAuthors[j].Views
-	})
-
-	// Get top 5 authors
-	if len(topAuthors) > 5 {
-		topAuthors = topAuthors[:5]
-	}
-
-	report := struct {
-		TotalViews             int            `json:"total_views"`
-		TotalSearchAppearances int            `json:"total_search_appearances"`
-		TopAuthors             []AuthorStats  `json:"top_authors"`
-		TopPosts               []structs.Post `json:"top_posts"`
-	}{
-		TotalViews:             totalViews,
-		TotalSearchAppearances: totalSearchAppearances,
-		TopAuthors:             topAuthors,
-		TopPosts:               topPosts,
+	reports := structs.ReportResponse{
+		TotalViews:        getTotalViews(),
+		SearchAppearances: getSearchAppearances(),
+		TopAuthors:        getTopAuthors(),
+		TopPosts:          getTopPosts(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(report)
+	json.NewEncoder(w).Encode(reports)
+}
+
+func getTotalViews() int {
+	return sumMapValues(structs.GlobalStats.PostViews)
+}
+
+func getSearchAppearances() int {
+	return structs.GlobalStats.TotalSearchCount
+}
+
+func getTopAuthors() []structs.Author {
+	return getTopItems(structs.GlobalStats.AuthorViews)
+}
+
+func getTopPosts() []structs.Post {
+	topPosts := make([]structs.Post, 0, len(structs.GlobalStats.PostViews))
+	for id, views := range structs.GlobalStats.PostViews {
+		post, exists := Store.Posts[id]
+		if exists {
+			post.Views = views
+			topPosts = append(topPosts, post)
+		}
+	}
+	sort.Slice(topPosts, func(i, j int) bool {
+		return topPosts[i].Views > topPosts[j].Views
+	})
+	return topPosts
+}
+
+func sumMapValues(m map[int]int) int {
+	total := 0
+	for _, value := range m {
+		total += value
+	}
+	return total
+}
+
+func getTopItems(m map[string]int) []structs.Author {
+	items := make([]structs.Author, 0, len(m))
+	for name, count := range m {
+		items = append(items, structs.Author{Name: name, Views: count})
+	}
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].Views == items[j].Views {
+			return items[i].Name < items[j].Name
+		}
+		return items[i].Views > items[j].Views
+	})
+	return items
 }
