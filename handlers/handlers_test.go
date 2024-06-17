@@ -78,10 +78,12 @@ func TestGetPost(t *testing.T) {
 	}
 
 	expected := structs.Post{
-		ID:      1,
-		Title:   "Test Post",
-		Content: "This is a test post",
-		Author:  "Tester",
+		ID:                1,
+		Title:             "Test Post",
+		Content:           "This is a test post",
+		Author:            "Tester",
+		Views:             1,
+		SearchAppearances: 0,
 	}
 	if post != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
@@ -299,5 +301,67 @@ func TestSearchPosts(t *testing.T) {
 				t.Errorf("expected %d posts, got %d for query %v", tt.expected, len(posts), tt.query)
 			}
 		})
+	}
+}
+
+func TestGetReports(t *testing.T) {
+	resetPosts()
+
+	// Simulate creating posts and updating metrics
+	payload1 := `{"title":"Test Post1","content":"This is a test post","author":"Tester1"}`
+	payload2 := `{"title":"Test Post2","content":"This is a test post","author":"Tester2"}`
+	createDummyPost(payload1, t)
+	createDummyPost(payload2, t)
+
+	// Simulate some views and search appearances
+	Store.Mutex.Lock()
+	post1 := Store.Posts[1]
+	post1.Views = 10
+	post1.SearchAppearances = 5
+	Store.Posts[1] = post1
+
+	post2 := Store.Posts[2]
+	post2.Views = 15
+	post2.SearchAppearances = 8
+	Store.Posts[2] = post2
+	Store.Mutex.Unlock()
+
+	req, err := http.NewRequest("GET", "/reports", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetReports)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	var report struct {
+		TotalViews             int `json:"total_views"`
+		TotalSearchAppearances int `json:"total_search_appearances"`
+		TopAuthors             []struct {
+			Author string `json:"author"`
+			Views  int    `json:"views"`
+		} `json:"top_authors"`
+		TopPosts []structs.Post `json:"top_posts"`
+	}
+
+	if err := json.NewDecoder(rr.Body).Decode(&report); err != nil {
+		t.Fatal(err)
+	}
+
+	if report.TotalViews != 25 || report.TotalSearchAppearances != 13 {
+		t.Errorf("unexpected report totals: got %+v", report)
+	}
+
+	if len(report.TopAuthors) != 2 || report.TopAuthors[0].Author != "Tester2" || report.TopAuthors[0].Views != 15 {
+		t.Errorf("unexpected top authors: got %+v", report.TopAuthors)
+	}
+
+	if len(report.TopPosts) != 2 || report.TopPosts[0].ID != 2 || report.TopPosts[0].Views != 15 {
+		t.Errorf("unexpected top posts: got %+v", report.TopPosts)
 	}
 }

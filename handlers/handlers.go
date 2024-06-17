@@ -5,6 +5,7 @@ import (
 	"blogplatform/validation"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,7 +33,7 @@ func extractAndValidateID(r *http.Request) (int, error) {
 // @host localhost:8443
 // @BasePath /
 
-// createPost creates a new post
+// CreatePost creates a new post
 // @Summary Create a new post
 // @Description Create a new blog post
 // @Tags Post API
@@ -58,7 +59,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(post)
 }
 
-// getPost retrieves a post by ID
+// GetPost retrieves a post by ID
 // @Summary Get a post by ID
 // @Description Get a post by ID
 // @Tags Post API
@@ -83,11 +84,14 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
+	// Increment the view count
+	post.Views++
+	Store.Posts[id] = post
 
 	json.NewEncoder(w).Encode(post)
 }
 
-// updatePost updates a post by ID
+// UpdatePost updates a post by ID
 // @Summary Update a post by ID
 // @Description Update a post by ID
 // @Tags Post API
@@ -129,7 +133,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(post)
 }
 
-// deletePost deletes a post by ID
+// DeletePost deletes a post by ID
 // @Summary Delete a post by ID
 // @Description Delete a post by ID
 // @Tags Post API
@@ -159,7 +163,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// listPosts lists all posts with pagination
+// ListPosts lists all posts with pagination
 // @Summary List all posts with pagination
 // @Description List all blog posts with pagination
 // @Tags Post Collection API
@@ -265,8 +269,83 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 	var result []structs.Post
 	for _, post := range Store.Posts {
 		if strings.Contains(post.Title, query) || strings.Contains(post.Content, query) || strings.Contains(post.Author, query) {
+			post.SearchAppearances++
+			Store.Posts[post.ID] = post
+
 			result = append(result, post)
 		}
 	}
 	json.NewEncoder(w).Encode(result)
+}
+
+// GetReports 	 Provides statistics of views, top authors and posts
+// @Summary      Get report statistics
+// @Description  Retrieve various report statistics such as number of views for posts, number of search appearances, top authors, and top posts.
+// @Tags         Reports API
+// @Produce      json
+// @Success      200  {object}  ReportResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /reports [get]
+func GetReports(w http.ResponseWriter, r *http.Request) {
+	Store.Mutex.Lock()
+	defer Store.Mutex.Unlock()
+
+	type AuthorStats struct {
+		Author string `json:"author"`
+		Views  int    `json:"views"`
+	}
+
+	var totalViews int
+	var totalSearchAppearances int
+	authorViews := make(map[string]int)
+	var topPosts []structs.Post
+
+	for _, post := range Store.Posts {
+		totalViews += post.Views
+		totalSearchAppearances += post.SearchAppearances
+		authorViews[post.Author] += post.Views
+		topPosts = append(topPosts, post)
+	}
+
+	// Sort top posts by views
+	sort.Slice(topPosts, func(i, j int) bool {
+		return topPosts[i].Views > topPosts[j].Views
+	})
+
+	// Get top 5 posts
+	if len(topPosts) > 5 {
+		topPosts = topPosts[:5]
+	}
+
+	// Convert author views map to slice
+	var topAuthors []AuthorStats
+	for author, views := range authorViews {
+		topAuthors = append(topAuthors, AuthorStats{Author: author, Views: views})
+	}
+
+	// Sort top authors by views
+	sort.Slice(topAuthors, func(i, j int) bool {
+		return topAuthors[i].Views > topAuthors[j].Views
+	})
+
+	// Get top 5 authors
+	if len(topAuthors) > 5 {
+		topAuthors = topAuthors[:5]
+	}
+
+	report := struct {
+		TotalViews             int            `json:"total_views"`
+		TotalSearchAppearances int            `json:"total_search_appearances"`
+		TopAuthors             []AuthorStats  `json:"top_authors"`
+		TopPosts               []structs.Post `json:"top_posts"`
+	}{
+		TotalViews:             totalViews,
+		TotalSearchAppearances: totalSearchAppearances,
+		TopAuthors:             topAuthors,
+		TopPosts:               topPosts,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(report)
 }

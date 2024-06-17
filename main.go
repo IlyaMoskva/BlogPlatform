@@ -9,7 +9,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-var version float64 = 0.6
+var version float64 = 0.7
 
 func main() {
 	fmt.Printf("Blog platform API. v %v\n", version)
@@ -33,6 +33,9 @@ func main() {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+
+	// Reporting API
+	http.HandleFunc("/reports", handlers.GetReports)
 
 	// Admin API
 	http.HandleFunc("/admin/import", handlers.ImportPostsFromFile)
