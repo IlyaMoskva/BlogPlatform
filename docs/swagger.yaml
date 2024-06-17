@@ -1,4 +1,16 @@
 definitions:
+  structs.Author:
+    properties:
+      name:
+        type: string
+      views:
+        type: integer
+    type: object
+  structs.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
   structs.Post:
     properties:
       author:
@@ -7,8 +19,27 @@ definitions:
         type: string
       id:
         type: integer
+      search_appearances:
+        type: integer
       title:
         type: string
+      views:
+        type: integer
+    type: object
+  structs.ReportResponse:
+    properties:
+      search_appearances:
+        type: integer
+      top_authors:
+        items:
+          $ref: '#/definitions/structs.Author'
+        type: array
+      top_posts:
+        items:
+          $ref: '#/definitions/structs.Post'
+        type: array
+      total_views:
+        type: integer
     type: object
 info:
   contact: {}
@@ -201,4 +232,26 @@ paths:
       summary: Search posts by title, content, or author
       tags:
       - Post Collection API
+  /reports:
+    get:
+      description: Retrieve various report statistics such as number of views for
+        posts, number of search appearances, top authors, and top posts.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/structs.ReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/structs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/structs.ErrorResponse'
+      summary: Get report statistics
+      tags:
+      - Reports API
 swagger: "2.0"

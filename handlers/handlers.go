@@ -289,9 +289,9 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 // @Description  Retrieve various report statistics such as number of views for posts, number of search appearances, top authors, and top posts.
 // @Tags         Reports API
 // @Produce      json
-// @Success      200  {object}  ReportResponse
-// @Failure      400  {object}  ErrorResponse
-// @Failure      500  {object}  ErrorResponse
+// @Success      200  {object}  structs.ReportResponse
+// @Failure      400  {object}  structs.ErrorResponse
+// @Failure      500  {object}  structs.ErrorResponse
 // @Router       /reports [get]
 func GetReports(w http.ResponseWriter, r *http.Request) {
 	reports := structs.ReportResponse{
