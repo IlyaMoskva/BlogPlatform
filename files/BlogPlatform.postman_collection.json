@@ -1,0 +1,239 @@
+{
+	"info": {
+		"_postman_id": "180a6e31-699a-4849-b48e-5fe3282dcfa6",
+		"name": "BlogPlatform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "914366",
+		"_collection_link": "https://bold-firefly-364774.postman.co/workspace/Pet-Projects~ca5df26b-ef7e-4494-8ef8-af201fef5eb4/collection/914366-180a6e31-699a-4849-b48e-5fe3282dcfa6?action=share&source=collection_link&creator=914366"
+	},
+	"item": [
+		{
+			"name": "POST create post http",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"First Post\", \"content\": \"This is the content of the first post.\", \"author\": \"Author1\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/post",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"post"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST http://localhost:8080/post -H \"Content-Type: application/json\" -d '{\"title\": \"First Post\", \"content\": \"This is the content of the first post.\", \"author\": \"Author1\"}'\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "GET post by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/post?id=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"post"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -X GET http://localhost:8080/post?id=1\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "PUT update post with ID",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"title\": \"Updated 93th Post\", \"content\": \"This is the updated content of the 93th post.\", \"author\": \"Unknown Person\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:8443/post?id=93",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"post"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "93"
+						},
+						{
+							"key": "Author",
+							"value": "Unknown Person",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -X PUT http://localhost:8080/post?id=1 -H \"Content-Type: application/json\" -d '{\"title\": \"Updated First Post\", \"content\": \"This is the updated content of the first post.\", \"author\": \"Author1\"}'\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE post by ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8443/post?id=1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"post"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -X DELETE http://localhost:8080/post?id=1\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "GET all posts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8443/posts",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"posts"
+					]
+				},
+				"description": "Generated from cURL: curl -X GET http://localhost:8080/posts\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "POST import from file",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "path_to_your_file/posts.json"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/admin/import",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"admin",
+						"import"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST -F \"file=@path_to_your_file/posts.json\" \"http://localhost:8080/admin/import\"\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "GET Search",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8443/posts/search?q=test",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"posts",
+						"search"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "test"
+						}
+					]
+				},
+				"description": "Generated from cURL: curl -X GET 'http://localhost:8080/posts/search?q=test'\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "GET reports",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8443/reports",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8443",
+					"path": [
+						"reports"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
